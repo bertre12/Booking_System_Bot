@@ -4,6 +4,8 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.enums import ParseMode
 import user.keyboards as kb
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 
 router = Router()  # Создание объекта.
 
@@ -26,6 +28,11 @@ text_welcome = (
 )
 
 
+# Объявление состояния бота.
+class Form(StatesGroup):
+    waiting_for_details = State()
+
+
 # Перехват на запрос '/start'.
 @router.message(CommandStart())
 async def cmd_start(message: Message):
@@ -40,15 +47,16 @@ async def cmd_start(message: Message):
 
 # Обработка нажатия Inline-кнопки через CallBack.
 @router.callback_query(F.data == 'details')
-async def cm_start(callback: CallbackQuery):
-    await callback.answer('')  # Чтоб не 'светилась' кнопка после нажатия.
-    await callback.message.answer(
+async def cm_start(callback: CallbackQuery, state: FSMContext):
+    # Замена текста приветствия.
+    await callback.message.edit_text(
         text=text_welcome,
         parse_mode=ParseMode.HTML,
 
         # Подключение Inline-клавиатуры для просмотра предлагаемых площадок.
         reply_markup=kb.inline_list_places
     )
+    await state.set_state(Form.waiting_for_details)  # Устанавливаем состояние.
 
 
 # Обработка Inline-клавиатуры для просмотра предлагаемых площадок.
