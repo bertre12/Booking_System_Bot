@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Создание Inline-клавиатуры.
 inline_details = InlineKeyboardMarkup(
@@ -27,3 +28,24 @@ inline_list_places = InlineKeyboardMarkup(
          ]
     ]
 )
+
+
+# Создание клавиатуры через сборщик InlineKeyboardBuilder.
+async def build_button_places_hotel():
+    # Список доступных гостиниц.
+    data = (
+        'Willing', 'Полонез', 'Imperial Palace', 'БонОтель', 'Buta',
+        'Crowne Plaza Minsk', 'Турист', 'Беларусь', 'Орбита', 'IT Time',
+        'Славянская', 'Гостиница')
+
+    keyboard = InlineKeyboardBuilder()
+
+    for button in data:
+        keyboard.add(InlineKeyboardButton(text=button, callback_data=button))
+
+    keyboard.adjust(3)  # Количество кнопок в ряд.
+
+    # Добавление кнопку "Назад" под всеми остальными кнопками.
+    keyboard.row(InlineKeyboardButton(text='Назад', callback_data='back'))
+
+    return keyboard.as_markup()
