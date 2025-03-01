@@ -30,7 +30,8 @@ inline_list_places = InlineKeyboardMarkup(
 )
 
 
-# Создание клавиатуры через сборщик InlineKeyboardBuilder.
+# Создание клавиатуры через сборщик InlineKeyboardBuilder для раздела
+# 'Гостиница'.
 async def build_button_places_hotel():
     # Список доступных гостиниц.
     data = (
@@ -46,6 +47,28 @@ async def build_button_places_hotel():
     keyboard.adjust(3)  # Количество кнопок в ряд.
 
     # Добавление кнопку "Назад" под всеми остальными кнопками.
-    keyboard.row(InlineKeyboardButton(text='Назад', callback_data='back'))
+    keyboard.row(InlineKeyboardButton(text='Назад',
+                                      callback_data='back'))
 
     return keyboard.as_markup()
+
+
+# Общие кнопки.
+async def build_button_places_hotel_joint():
+    # Список кнопок.
+    data = (
+        'Подробнее', 'Цена', 'Свободные даты', 'Забронировать'
+    )
+
+    keyboard_joint = InlineKeyboardBuilder()
+
+    for button in data:
+        keyboard_joint.add(
+            InlineKeyboardButton(text=button, callback_data=button))
+
+    keyboard_joint.adjust(2)  # Количество кнопок в ряд.
+
+    keyboard_joint.row(InlineKeyboardButton(text='Назад',
+                                            callback_data='back'))
+
+    return keyboard_joint.as_markup()
