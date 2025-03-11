@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Router, F
 from aiogram.filters import CommandStart, StateFilter
 from aiogram.types import Message, CallbackQuery
@@ -95,3 +96,18 @@ async def get_callback_query_places(callback: CallbackQuery,
 
         elif callback.data == 'place_other_places':
             await callback.answer(text='Временно недоступно')
+
+
+# Удаление сообщений от пользователя(простой анти спам).
+@router.message()
+async def delete_message(message: Message):
+    # Отправка подтверждения о получении сообщения и предупреждение.
+    bot_message = await message.answer(
+        'Ваше сообщение получено!\nИ будет удалено через 5 секунд'
+    )
+
+    # Удаление сообщений пользователя через 5 секунд.
+    await asyncio.sleep(5)
+    await message.delete()
+    # Удаление сообщения от бота.
+    await bot_message.delete()
