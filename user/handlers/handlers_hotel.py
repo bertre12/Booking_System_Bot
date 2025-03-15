@@ -4,6 +4,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 import user.keyboards.keyboards as kb
 import user.keyboards.keyboards_hotel as kb_hotel
+from database.database_postgresql import get_prices_from_db
 from user.handlers.handlers import Form
 
 router_hotel = Router()  # Создание объекта.
@@ -24,7 +25,7 @@ async def get_callback_query_hotel_it_time(callback: CallbackQuery,
 
     # Отправляем сообщение с выбранным названием гостиницы.
     await callback.message.edit_text(
-        text=f'Вы выбрали <b><u>{hotel_name}</u></b>',
+        text=f'Вы выбрали отель <b><u>{hotel_name}</u></b>',
         parse_mode=ParseMode.HTML,
         reply_markup=await kb_hotel.build_button_places_hotel_joint()
     )
@@ -68,11 +69,44 @@ async def handle_back_button_main(callback: CallbackQuery, state: FSMContext):
 async def handle_more_details(callback: CallbackQuery, state: FSMContext):
     # Извлекаем название гостиницы из состояния.
     data = await state.get_data()
-    hotel_name = data.get('hotel_name', 'неизвестная гостиница')
+    hotel_name = data.get('hotel_name', 'неизвестный отель')
 
     # Отправляем сообщение с подробной информацией.
     await callback.message.edit_text(
         text=f'Здесь будет информация об отеле <b><u>{hotel_name}</u></b>.',
+        parse_mode=ParseMode.HTML,
+
+        # Подключаем кнопку "Назад".
+        reply_markup=kb_hotel.get_back_button()
+    )
+    # Подтверждаем обработку callback-запроса.
+    await callback.answer()
+
+
+@router_hotel.callback_query(F.data == 'Цена')
+async def handle_price(callback: CallbackQuery, state: FSMContext):
+    # Извлекаем название гостиницы из состояния.
+    data = await state.get_data()
+    hotel_name = data.get('hotel_name', 'неизвестный отель')
+
+    # Получаем цены из базы данных.
+    prices = await get_prices_from_db()
+
+    # Находим цену для выбранной гостиницы.
+    hotel_price = next(
+        (price['price'] for price in prices if price['name'] == hotel_name),
+        None)
+
+    # Обрабатываем ошибку.
+    if not hotel_price:
+        await callback.answer(text='Ошибка: Цена для отеля не найдена.',
+                              show_alert=True)
+        return
+
+    # Отправляем сообщение с информацией о цене.
+    await callback.message.edit_text(
+        text=f'Цена в отеле <b><u>{hotel_name}</u></b>: <b>{hotel_price}</b> '
+             f'руб.',
         parse_mode=ParseMode.HTML,
 
         # Подключаем кнопку "Назад".
@@ -90,11 +124,11 @@ async def handle_back_button_details(callback: CallbackQuery,
 
     # Извлекаем название гостиницы из состояния.
     data = await state.get_data()
-    hotel_name = data.get('hotel_name', 'неизвестная гостиница')
+    hotel_name = data.get('hotel_name', 'неизвестный отель')
 
     # Возврат к предыдущему сообщению.
     await callback.message.edit_text(
-        text=f'Вы вернулись к выбранной гостинице <b><u>{hotel_name}</u></b>',
+        text=f'Вы вернулись к выбранному отелю <b><u>{hotel_name}</u></b>',
         parse_mode=ParseMode.HTML,
 
         # Подключаем кнопки под выбранной Гостиницей.
