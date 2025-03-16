@@ -4,7 +4,8 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 import user.keyboards.keyboards as kb
 import user.keyboards.keyboards_hotel as kb_hotel
-from database.database_postgresql import get_prices_from_db
+from database.database_postgresql import get_prices_from_db, \
+    get_hotels_and_prices_and_description_from_db
 from user.handlers.handlers import Form
 
 router_hotel = Router()  # Создание объекта.
@@ -71,9 +72,22 @@ async def handle_more_details(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     hotel_name = data.get('hotel_name', 'неизвестный отель')
 
-    # Отправляем сообщение с подробной информацией.
+    # Получаем данные о гостинице через подключение к бд.
+    hotels_and_prices = await get_hotels_and_prices_and_description_from_db()
+    hotel_description = next(
+        (hotel['description'] for hotel in hotels_and_prices if
+         hotel['name'] == hotel_name), None)
+
+    # Обрабатываем ошибку, когда нет информации о выбранной гостинице.
+    if not hotel_description:
+        await callback.answer(
+            text='Ошибка: Описание для гостиницы не найдено или недоступно.',
+            show_alert=True  # Всплывающее сообщение.
+        )
+        return
+
     await callback.message.edit_text(
-        text=f'Здесь будет информация об отеле <b><u>{hotel_name}</u></b>.',
+        text=f'Описание отеля <b><u>{hotel_name}</u></b>: {hotel_description}',
         parse_mode=ParseMode.HTML,
 
         # Подключаем кнопку "Назад".

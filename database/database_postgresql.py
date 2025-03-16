@@ -34,14 +34,15 @@ async def db_setup():
 
 
 # Функция для запроса к базе данных.
-async def get_hotels_and_prices_from_db():
+async def get_hotels_and_prices_and_description_from_db():
     # Получение соединения с базой данных.
     conn = await get_db_connection()
     try:
         # Выполнение запроса.
-        hotels = await conn.fetch('SELECT name, price FROM hotel')
-        # Извлечение данных(гостиница и цена) в виде списка.
-        return [{'name': hotel['name'], 'price': hotel['price']} for hotel in
+        hotels = await conn.fetch('SELECT name, price, description FROM hotel')
+        # Извлечение данных(гостиница и цена, описание) в виде списка.
+        return [{'name': hotel['name'], 'price': hotel['price'],
+                 'description': hotel['description']} for hotel in
                 hotels]
     finally:
         # Закрытие соединения.
@@ -50,10 +51,24 @@ async def get_hotels_and_prices_from_db():
 
 # Функция извлечения названий гостиниц.
 async def get_hotels_from_db():
-    hotels_and_prices = await get_hotels_and_prices_from_db()
-    return [hotel['name'] for hotel in hotels_and_prices]
+    # Получаем данные из бд.
+    hotels_and_prices = await get_hotels_and_prices_and_description_from_db()
+
+    # Извлекаем названия гостиниц и сортируем их по алфавиту.
+    hotels = [hotel['name'] for hotel in hotels_and_prices]
+    hotels.sort()  # Сортировка по алфавиту.
+
+    return hotels
 
 
-# Функция извлечения цен гостиниц.
+# Функция извлечения цены для выбранной гостиницы.
 async def get_prices_from_db():
-    return await get_hotels_and_prices_from_db()
+    return await get_hotels_and_prices_and_description_from_db()
+
+
+# Функция извлечения описания для выбранной гостиницы.
+async def get_descriptions_from_db():
+    # Получаем данные из бд.
+    hotels_and_descriptions = \
+        await get_hotels_and_prices_and_description_from_db()
+    return [hotel['description'] for hotel in hotels_and_descriptions]
