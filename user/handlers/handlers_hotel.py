@@ -11,12 +11,12 @@ from user.handlers.handlers import Form
 router_hotel = Router()  # Создание объекта.
 
 
-# Обработка кнопок выбора названий Гостиниц.
+# Обработка кнопок выбора названий Гостиниц и добавление пагинации.
 @router_hotel.callback_query(F.data.startswith('hotel_'))
 async def get_callback_query_hotel_it_time(callback: CallbackQuery,
                                            state: FSMContext):
     # Извлекаем название гостиницы.
-    hotel_name = callback.data.replace('hotel_', '')
+    hotel_name = callback.data.split('_')[1]
 
     # Сохраняем название гостиницы в состоянии.
     await state.update_data(hotel_name=hotel_name)
@@ -30,6 +30,26 @@ async def get_callback_query_hotel_it_time(callback: CallbackQuery,
         parse_mode=ParseMode.HTML,
         reply_markup=await kb_hotel.build_button_places_hotel_joint()
     )
+
+
+# Обработка пагинации при выборе Гостиница.
+@router_hotel.callback_query(lambda c: c.data.startswith('page_'))
+async def handle_pagination(callback: CallbackQuery):
+    # Извлекаем данные из callback.
+    data = callback.data.split('_')
+
+    # Проверяем, является ли callback-данные кнопкой пагинации.
+    if len(data) == 2 and data[1].isdigit():
+        page = int(data[1])  # Преобразуем номер страницы в число.
+        # Обновляем клавиатуру с новой страницей.
+        keyboard = await kb_hotel.build_button_places_hotel(page=page)
+        await callback.message.edit_reply_markup(reply_markup=keyboard)
+    else:
+        # Игнорируем нажатие на кнопку индикатора страницы.
+        await callback.answer()
+
+    # Подтверждаем обработку callback.
+    await callback.answer()
 
 
 # Обработка кнопки для перехода в главное меню.
