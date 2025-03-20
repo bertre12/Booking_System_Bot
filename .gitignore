@@ -1,3 +1,3 @@
 /venv/
 /.idea/
-token_key.py
+.env

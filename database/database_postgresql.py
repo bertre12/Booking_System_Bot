@@ -1,15 +1,17 @@
 import asyncpg
-from token_key import POSTGRESQL_USER, POSTGRESQL_PASSWORD, \
-    POSTGRESQL_DATABASE, POSTGRESQL_HOST
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # Данные для подключения к PostgreSQL на локальной машине.
 async def get_db_connection():
     return await asyncpg.connect(
-        user=POSTGRESQL_USER,
-        password=POSTGRESQL_PASSWORD,
-        database=POSTGRESQL_DATABASE,
-        host=POSTGRESQL_HOST
+        user=os.getenv('POSTGRESQL_USER'),
+        password=os.getenv('POSTGRESQL_PASSWORD'),
+        database=os.getenv('POSTGRESQL_DATABASE'),
+        host=os.getenv('POSTGRESQL_HOST')
     )
 
 
