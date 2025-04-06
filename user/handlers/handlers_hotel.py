@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 import user.keyboards.keyboards as kb
 import user.keyboards.keyboards_hotel as kb_hotel
 from database.database_postgresql import get_prices_from_db, \
-    get_hotels_and_prices_and_description_from_db
+    get_id_hotel_and_price_and_description_from_db
 from user.handlers.handlers import Form
 
 router_hotel = Router()  # Создание объекта.
@@ -60,11 +60,11 @@ async def handle_back_button(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Form.waiting_for_details)
 
     await callback.message.edit_text(
-        text='Вы перешли в раздел <b><u>раздел выбора мест отдыха:</u></b>',
+        text='Вы перешли в раздел <b><u>выбора мест отдыха:</u></b>',
         parse_mode=ParseMode.HTML,
 
         # Подключаем Inline-клавиатуру со списком площадок отдыха.
-        reply_markup=kb.inline_list_places
+        reply_markup=kb.inline_list_places()
     )
 
 
@@ -93,7 +93,7 @@ async def handle_more_details(callback: CallbackQuery, state: FSMContext):
     hotel_name = data.get('hotel_name', 'неизвестный отель')
 
     # Получаем данные о гостинице через подключение к бд.
-    hotels_and_prices = await get_hotels_and_prices_and_description_from_db()
+    hotels_and_prices = await get_id_hotel_and_price_and_description_from_db()
     hotel_description = next(
         (hotel['description'] for hotel in hotels_and_prices if
          hotel['name'] == hotel_name), None)
@@ -133,8 +133,10 @@ async def handle_price(callback: CallbackQuery, state: FSMContext):
 
     # Обрабатываем ошибку.
     if not hotel_price:
-        await callback.answer(text='Ошибка: Цена для отеля не найдена.',
-                              show_alert=True)
+        await callback.answer(
+            text='Ошибка: Цена для отеля не найдена.',
+            show_alert=True
+        )
         return
 
     # Отправляем сообщение с информацией о цене.

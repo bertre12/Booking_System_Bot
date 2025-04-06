@@ -5,6 +5,7 @@ import os
 from aiogram import Bot, Dispatcher
 from user.handlers.handlers import router
 from user.handlers.handlers_hotel import router_hotel
+from user.antispam import router_antispam
 from aiogram.fsm.storage.memory import MemoryStorage
 from database.database_postgresql import db_setup
 from dotenv import load_dotenv
@@ -26,8 +27,9 @@ async def main():
     await db_setup()  # Вызов функции настройки базы данных.
 
     # Подключение роутера.
-    dp.include_router(router)
-    dp.include_router(router_hotel)
+    dp.include_router(router)  # Подключение роутера Главного Меню.
+    dp.include_router(router_hotel)  # Подключение роутера Гостиница.
+    dp.include_router(router_antispam)  # Подключение роутера Антиспам.
 
     # Игнорирование запросов при выключенном боте.
     await bot.delete_webhook(drop_pending_updates=True)
