@@ -6,6 +6,8 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 import user.keyboards.keyboards as kb
 import user.keyboards.keyboards_hotel as kb_hotel
 from database.database_postgresql import (
@@ -77,7 +79,7 @@ async def handle_back_button(callback: CallbackQuery, state: FSMContext):
         text='Вы перешли в раздел <b><u>выбора мест отдыха:</u></b>',
         parse_mode=ParseMode.HTML,
         # Подключаем Inline-клавиатуру со списком площадок отдыха.
-        reply_markup=kb.inline_list_places(),
+        reply_markup=kb.inline_list_places
     )
 
 
@@ -315,11 +317,18 @@ async def finish_booking(message: Message, state: FSMContext):
     await save_user(user_data)
 
     try:
+        # Создаем клавиатуру с кн."В главное меню".
+        keyboard = InlineKeyboardBuilder()
+        keyboard.row(kb_hotel.create_main_menu_button())
+
         await message.answer(
             text=f'Спасибо! Ваши данные сохранены.\n'
             f'Бронирование успешно оформлено! Номер бронирования: \n'
             f'<b><u>{user_data["booking_number"]}</u></b>',
             parse_mode=ParseMode.HTML,
+
+            # Подключение кн. "В главное меню".
+            reply_markup=keyboard.as_markup()
         )
     except Exception as e:
         await message.answer(f'Ошибка при бронировании: {e}')

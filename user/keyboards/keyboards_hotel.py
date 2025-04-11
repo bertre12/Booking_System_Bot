@@ -3,6 +3,14 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from database.database_postgresql import get_hotels_from_db
 
 
+# Создаём отдельную кн. для перехода "В главное меню".
+def create_main_menu_button():
+    return InlineKeyboardButton(
+        text='В главное меню ⤴️',
+        callback_data='main_menu'
+    )
+
+
 # Создание клавиатуры через сборщик InlineKeyboardBuilder для раздела
 # "Гостиница" из списка в базе данных и добавление кнопок пагинации.
 async def build_button_places_hotel(page: int = 0, items_per_page: int = 15):
@@ -40,10 +48,8 @@ async def build_button_places_hotel(page: int = 0, items_per_page: int = 15):
             InlineKeyboardButton(text=f'Страница {page + 1} из {total_pages}',
                                  callback_data='page_indicator'))
 
-    # Добавление кнопку "В главное меню" под всеми остальными кнопками.
-    keyboard.row(
-        InlineKeyboardButton(text='В главное меню ⤴️',
-                             callback_data='main_menu'))
+    # Добавляем кн. "В главное меню" из функции под всеми остальными кнопками.
+    keyboard.row(create_main_menu_button())
 
     return keyboard.as_markup()
 
